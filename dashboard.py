@@ -41,7 +41,16 @@ elif menu == "Appointments":
 
     st.write("### Statistics")
     st.write(f"Total Appointments: {len(appointments)}")
-    st.bar_chart(appointments["doctor"].value_counts())
+
+    last_10_days = appointments[
+        pd.to_datetime(appointments["appointment_date"])
+        >= pd.Timestamp.now() - pd.Timedelta(days=10)
+    ]
+    if last_10_days.empty:
+        st.write("No appointments in the last 10 days.")
+    else:
+        st.bar_chart(last_10_days["appointment_date"].value_counts())
+
 
 elif menu == "Medical History":
     st.title("📋 Medical History Overview")
