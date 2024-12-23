@@ -35,7 +35,6 @@ This project is a simple **Patient Management System** built using SQLite for th
 | `patient_id`        | Integer  | Foreign Key referencing `Patients.id` |
 | `appointment_date`  | Date     | Date of Appointment            |
 | `doctor`            | Text     | Doctor's Name                  |
-| `reason`            | Text     | Reason for Appointment         |
 
 ### MedicalHistory Table
 | Column            | Type     | Description                     |
@@ -44,4 +43,3 @@ This project is a simple **Patient Management System** built using SQLite for th
 | `patient_id`      | Integer  | Foreign Key referencing `Patients.id` |
 | `condition`       | Text     | Medical Condition              |
 | `diagnosis_date`  | Date     | Date of Diagnosis              |
-| `treatment`       | Text     | Treatment Details              |
