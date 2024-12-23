@@ -12,7 +12,7 @@ def generate_patients(n=50):
         first_name = name.split()[0]
         last_name = name.split()[-1]
         email = f"{first_name[0].lower()}{last_name.lower()}@example.com"
-        age = random.randint(1, 90)
+        age = random.randint(18, 90)
         gender = random.choice(["Male", "Female", "Other"])
         phone = fake.phone_number()
         patients.append((name, age, gender, email, phone))
