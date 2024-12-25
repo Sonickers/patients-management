@@ -33,7 +33,7 @@ elif menu == "Appointments View":
     st.title("📅 Appointments Calendar View")
 
     query = """
-    SELECT Appointments.*, Patients.name AS patient_name
+    SELECT Appointments.id, Appointments.appointment_date, Appointments.doctor, Patients.name AS patient_name
     FROM Appointments
     JOIN Patients ON Appointments.patient_id = Patients.id
     """
@@ -43,15 +43,24 @@ elif menu == "Appointments View":
         appointments["appointment_date"], errors="coerce"
     )
 
-    grouped = appointments.groupby(appointments["appointment_date"].dt.date)
+    today = pd.Timestamp.now().normalize()
+    future_window = today + pd.Timedelta(days=4)
+    future_appointments = appointments[
+        (appointments["appointment_date"] >= today)
+        & (appointments["appointment_date"] <= future_window)
+    ]
+
+    grouped = future_appointments.groupby(
+        future_appointments["appointment_date"].dt.date
+    )
 
     for date, group in grouped:
         st.subheader(f"{date.strftime('%A, %d-%m-%Y')}")
 
         group = group.reset_index(drop=True)
-
         for idx, row in group.iterrows():
-            st.write(f"{idx + 1}. **{row['patient_name']}**, Dr. {row['doctor']}")
+            st.markdown(f"{row['id']}. **{row['patient_name']}**, Dr. {row['doctor']}")
+
 
 elif menu == "Appointments":
     st.title("📅 Appointments Overview")
