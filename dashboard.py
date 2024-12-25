@@ -59,7 +59,7 @@ elif menu == "Appointments View":
 
         group = group.reset_index(drop=True)
         for idx, row in group.iterrows():
-            st.markdown(f"{row['id']}. **{row['patient_name']}**, Dr. {row['doctor']}")
+            st.markdown(f"{idx + 1}. **{row['patient_name']}**, Dr. {row['doctor']}")
 
 
 elif menu == "Appointments":
