@@ -19,11 +19,12 @@ def generate_patients(n=50):
     return patients
 
 
-def generate_appointments(patient_ids, n=100):
+def generate_appointments(patient_ids, n=100, include_future=False):
     appointments = []
     for _ in range(n):
         patient_id = random.choice(patient_ids)
-        appointment_date = fake.date_between(start_date="-2y", end_date="today")
+        appointment_date = fake.date_between(start_date="today", end_date="+10d")
+
         doctor = fake.name()
         appointments.append((patient_id, appointment_date, doctor))
     return appointments
