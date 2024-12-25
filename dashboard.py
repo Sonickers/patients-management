@@ -135,23 +135,6 @@ if menu == "Analytics":
     condition_counts = medical_history["condition"].value_counts()
     st.bar_chart(condition_counts)
 
-    try:
-        from wordcloud import WordCloud
-        import matplotlib.pyplot as plt
-
-        st.subheader("Condition Word Cloud")
-        condition_text = " ".join(medical_history["condition"].dropna())
-        wordcloud = WordCloud(width=800, height=400, background_color="white").generate(
-            condition_text
-        )
-
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation="bilinear")
-        plt.axis("off")
-        st.pyplot(plt)
-    except ImportError:
-        st.info("Install the `wordcloud` package to enable the word cloud feature.")
-
 elif menu == "Analytics":
     st.title("📊 Advanced Analytics")
 
