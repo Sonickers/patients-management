@@ -13,7 +13,8 @@ def get_data(query, db="patient_management.db"):
 
 st.sidebar.title("Patient Management Dashboard")
 menu = st.sidebar.radio(
-    "Select an Option:", ["Patients", "Appointments", "Medical History", "Analytics"]
+    "Select an Option:",
+    ["Appointments View", "Patients", "Appointments", "Medical History", "Analytics"],
 )
 
 if menu == "Patients":
@@ -27,6 +28,30 @@ if menu == "Patients":
     st.write("### Statistics")
     st.write(f"Total Patients: {len(patients)}")
     st.bar_chart(patients["age"].value_counts())
+
+elif menu == "Appointments View":
+    st.title("📅 Appointments Calendar View")
+
+    query = """
+    SELECT Appointments.*, Patients.name AS patient_name
+    FROM Appointments
+    JOIN Patients ON Appointments.patient_id = Patients.id
+    """
+    appointments = get_data(query)
+
+    appointments["appointment_date"] = pd.to_datetime(
+        appointments["appointment_date"], errors="coerce"
+    )
+
+    grouped = appointments.groupby(appointments["appointment_date"].dt.date)
+
+    for date, group in grouped:
+        st.subheader(f"{date.strftime('%A, %d-%m-%Y')}")
+
+        group = group.reset_index(drop=True)
+
+        for idx, row in group.iterrows():
+            st.write(f"{idx + 1}. **{row['patient_name']}**, Dr. {row['doctor']}")
 
 elif menu == "Appointments":
     st.title("📅 Appointments Overview")
@@ -50,7 +75,6 @@ elif menu == "Appointments":
         st.write("No appointments in the last 10 days.")
     else:
         st.bar_chart(last_10_days["appointment_date"].value_counts())
-
 
 elif menu == "Medical History":
     st.title("📋 Medical History Overview")
@@ -109,7 +133,6 @@ if menu == "Analytics":
         st.pyplot(plt)
     except ImportError:
         st.info("Install the `wordcloud` package to enable the word cloud feature.")
-
 
 elif menu == "Analytics":
     st.title("📊 Advanced Analytics")
