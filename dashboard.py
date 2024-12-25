@@ -33,9 +33,12 @@ elif menu == "Appointments View":
     st.title("📅 Appointments Calendar View")
 
     query = """
-    SELECT Appointments.id, Appointments.appointment_date, Appointments.doctor, Patients.name AS patient_name
+    SELECT Appointments.id, Appointments.appointment_date, Appointments.doctor, 
+    Patients.name AS patient_name, MedicalHistory.condition AS condition
     FROM Appointments
     JOIN Patients ON Appointments.patient_id = Patients.id
+    JOIN MedicalHistory ON Appointments.patient_id = MedicalHistory.patient_id
+    GROUP BY Patients.id, Appointments.id
     """
     appointments = get_data(query)
 
@@ -53,14 +56,20 @@ elif menu == "Appointments View":
     grouped = future_appointments.groupby(
         future_appointments["appointment_date"].dt.date
     )
-
     for date, group in grouped:
         st.subheader(f"{date.strftime('%A, %d-%m-%Y')}")
 
         group = group.reset_index(drop=True)
         for idx, row in group.iterrows():
-            st.markdown(f"{idx + 1}. **{row['patient_name']}**, Dr. {row['doctor']}")
+            if row["condition"] == "Critical Condition":
+                patient_name = f"<span style='color:red; font-weight:bold;'>{row['patient_name']}</span>"
+            else:
+                patient_name = f"<b>{row['patient_name']}</b>"
 
+            st.markdown(
+                f"{idx + 1}. {patient_name}, Dr. {row['doctor']}",
+                unsafe_allow_html=True,
+            )
 
 elif menu == "Appointments":
     st.title("📅 Appointments Overview")
