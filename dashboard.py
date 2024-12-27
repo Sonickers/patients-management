@@ -67,7 +67,7 @@ elif menu == "Appointments View":
                 patient_name = f"<b>{row['patient_name']}</b>"
 
             st.markdown(
-                f"{idx + 1}. {patient_name}, Dr. {row['doctor']}",
+                f"{idx + 1}. **{patient_name}**, {row['doctor']}",
                 unsafe_allow_html=True,
             )
 
@@ -108,8 +108,6 @@ elif menu == "Medical History":
     st.write("### Most Common Conditions")
     st.bar_chart(history["condition"].value_counts())
 
-st.sidebar.info("Developed with ❤️ using Streamlit")
-
 if menu == "Analytics":
     st.title("📊 Advanced Analytics")
 
@@ -138,41 +136,38 @@ if menu == "Analytics":
 elif menu == "Analytics":
     st.title("📊 Advanced Analytics")
 
+    # Fetch appointment and medical history data
     query_appointments = "SELECT * FROM Appointments"
     query_medical_history = "SELECT * FROM MedicalHistory"
 
     appointments = get_data(query_appointments)
     medical_history = get_data(query_medical_history)
 
-    appointments["appointment_date"] = pd.to_datetime(appointments["appointment_date"])
+    appointments["appointment_date"] = pd.to_datetime(
+        appointments["appointment_date"], errors="coerce"
+    )
 
-    st.subheader("Busy Days Analysis")
-    appointments["day_of_week"] = appointments["appointment_date"].dt.day_name()
-    busy_days = appointments["day_of_week"].value_counts()
-    st.bar_chart(busy_days)
-
-    st.subheader("Trends in Appointments Over Time")
-    appointments["date"] = appointments["appointment_date"].dt.date
-    appointments_trend = appointments.groupby("date").size()
+    st.subheader("Appointments Over Time")
+    appointments["week"] = (
+        appointments["appointment_date"].dt.to_period("W").astype(str)
+    )
+    appointments_trend = appointments.groupby("week").size()
     st.line_chart(appointments_trend)
 
-    st.subheader("Common Conditions")
+    st.subheader("Most Common Medical Conditions")
     condition_counts = medical_history["condition"].value_counts()
     st.bar_chart(condition_counts)
 
-    try:
-        from wordcloud import WordCloud
-        import matplotlib.pyplot as plt
+    st.subheader("Top Doctors by Number of Appointments")
+    top_doctors = appointments["doctor"].value_counts()
+    st.bar_chart(top_doctors)
 
-        st.subheader("Condition Word Cloud")
-        condition_text = " ".join(medical_history["condition"].dropna())
-        wordcloud = WordCloud(width=800, height=400, background_color="white").generate(
-            condition_text
-        )
+    st.subheader("Appointment Distribution Heatmap")
+    appointments["day_of_week"] = appointments["appointment_date"].dt.day_name()
+    appointments["hour"] = appointments["appointment_date"].dt.hour
+    heatmap_data = appointments.pivot_table(
+        index="day_of_week", columns="hour", aggfunc="size", fill_value=0
+    )
 
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation="bilinear")
-        plt.axis("off")
-        st.pyplot(plt)
-    except ImportError:
-        st.info("Install the `wordcloud` package to enable the word cloud feature.")
+    st.write("Heatmap: Appointments by Day and Hour")
+    st.dataframe(heatmap_data)
