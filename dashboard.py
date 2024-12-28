@@ -14,7 +14,14 @@ def get_data(query, db="patient_management.db"):
 st.sidebar.title("Patient Management Dashboard")
 menu = st.sidebar.radio(
     "Select an Option:",
-    ["Appointments View", "Patients", "Appointments", "Medical History", "Analytics"],
+    [
+        "Appointments View",
+        "Patients",
+        "Appointments",
+        "Medical History",
+        "Analytics",
+        "Search",
+    ],
 )
 
 if menu == "Patients":
@@ -133,10 +140,39 @@ if menu == "Analytics":
     condition_counts = medical_history["condition"].value_counts()
     st.bar_chart(condition_counts)
 
+elif menu == "Search":
+    st.title("🔍 Search Appointments")
+
+    query = """
+    SELECT Appointments.id, Appointments.appointment_date, Appointments.doctor, 
+           Patients.name AS patient_name
+    FROM Appointments
+    JOIN Patients ON Appointments.patient_id = Patients.id
+    """
+    appointments = get_data(query)
+
+    search_term = st.text_input("Search by Patient or Doctor Name:")
+
+    if search_term:
+        filtered_appointments = appointments[
+            (
+                appointments["patient_name"].str.contains(
+                    search_term, case=False, na=False
+                )
+            )
+            | (appointments["doctor"].str.contains(search_term, case=False, na=False))
+        ]
+
+        if not filtered_appointments.empty:
+            st.write("### Search Results:")
+            st.dataframe(filtered_appointments)
+        else:
+            st.write("No matching records found.")
+
+
 elif menu == "Analytics":
     st.title("📊 Advanced Analytics")
 
-    # Fetch appointment and medical history data
     query_appointments = "SELECT * FROM Appointments"
     query_medical_history = "SELECT * FROM MedicalHistory"
 
