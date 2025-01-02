@@ -41,11 +41,12 @@ elif menu == "Appointments View":
 
     query = """
     SELECT Appointments.id, Appointments.appointment_date, Appointments.doctor, 
-    Patients.name AS patient_name, MedicalHistory.condition AS condition
+           Patients.name AS patient_name, Patients.age, Patients.gender, 
+           MedicalHistory.condition, MedicalHistory.treatment
     FROM Appointments
     JOIN Patients ON Appointments.patient_id = Patients.id
     JOIN MedicalHistory ON Appointments.patient_id = MedicalHistory.patient_id
-    GROUP BY Patients.id, Appointments.id
+    GROUP BY Appointments.id
     """
     appointments = get_data(query)
 
@@ -54,29 +55,32 @@ elif menu == "Appointments View":
     )
 
     today = pd.Timestamp.now().normalize()
-    future_window = today + pd.Timedelta(days=4)
+    future_window = today + pd.Timedelta(days=30)
     future_appointments = appointments[
         (appointments["appointment_date"] >= today)
         & (appointments["appointment_date"] <= future_window)
     ]
 
-    grouped = future_appointments.groupby(
-        future_appointments["appointment_date"].dt.date
+    st.write("### Upcoming Appointments (Today + 30 Days)")
+    selected_appointment = st.selectbox(
+        "Select an Appointment to View Details:",
+        future_appointments["id"],
+        format_func=lambda x: f"Appointment ID: {x}",
     )
-    for date, group in grouped:
-        st.subheader(f"{date.strftime('%A, %d-%m-%Y')}")
 
-        group = group.reset_index(drop=True)
-        for idx, row in group.iterrows():
-            if row["condition"] == "Critical Condition":
-                patient_name = f"<span style='color:red; font-weight:bold;'>{row['patient_name']}</span>"
-            else:
-                patient_name = f"<b>{row['patient_name']}</b>"
+    if selected_appointment:
+        details = future_appointments[
+            future_appointments["id"] == selected_appointment
+        ].iloc[0]
+        st.write(f"### Appointment Details")
+        st.write(f"**Patient Name:** {details['patient_name']}")
+        st.write(f"**Age:** {details['age']}")
+        st.write(f"**Gender:** {details['gender']}")
+        st.write(f"**Condition:** {details['condition']}")
+        st.write(f"**Treatment:** {details['treatment']}")
+        st.write(f"**Doctor:** {details['doctor']}")
+        st.write(f"**Date:** {details['appointment_date'].strftime('%A, %d-%m-%Y')}")
 
-            st.markdown(
-                f"{idx + 1}. **{patient_name}**, {row['doctor']}",
-                unsafe_allow_html=True,
-            )
 
 elif menu == "Appointments":
     st.title("📅 Appointments Overview")
