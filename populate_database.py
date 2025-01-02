@@ -4,6 +4,8 @@ import random
 
 fake = Faker()
 
+DATABASE = "patient_management.db"
+
 DOCTORS = [
     "Dr. Susan Brown",
     "Dr. Michael Green",
@@ -27,13 +29,31 @@ def generate_patients(n=50):
     return patients
 
 
+def is_valid_appointment(patient_id, doctor, appointment_date, cursor):
+    cursor.execute(
+        """
+    SELECT COUNT(*) 
+    FROM Appointments 
+    WHERE doctor = ? AND appointment_date = ? AND patient_id != ?
+    """,
+        (doctor, appointment_date, patient_id),
+    )
+    conflict_count = cursor.fetchone()[0]
+    return conflict_count == 0
+
+
 def generate_appointments(patient_ids, n=100):
     appointments = []
-    for _ in range(n):
-        patient_id = random.choice(patient_ids)
-        appointment_date = fake.date_between(start_date="-2y", end_date="+10d")
-        doctor = random.choice(DOCTORS)
-        appointments.append((patient_id, appointment_date, doctor))
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        for _ in range(n):
+            patient_id = random.choice(patient_ids)
+            appointment_date = fake.date_between(start_date="-2y", end_date="+10d")
+            doctor = random.choice(DOCTORS)
+
+            # Ensure the appointment is valid
+            if is_valid_appointment(patient_id, doctor, appointment_date, cursor):
+                appointments.append((patient_id, appointment_date, doctor))
     return appointments
 
 
